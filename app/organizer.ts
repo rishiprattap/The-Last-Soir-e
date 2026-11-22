@@ -12,7 +12,7 @@ function same(a: string, b: string) {
 function sessionKey() {
   const key = process.env.DPSB_ORGANIZER_KEY;
   const secret = process.env.SESSION_SECRET;
-  if (!key || key.length < 32 || !secret || secret.length < 32) return null;
+  if (!key || key.length < 8 || !secret || secret.length < 32) return null;
   return createHmac("sha256", secret).update(key).digest();
 }
 
