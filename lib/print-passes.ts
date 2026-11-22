@@ -9,6 +9,8 @@ const qrSize = 26 * mm;
 const qrMid = 148.5 * mm;
 const scale = 2040 / ticketWidth;
 
+export const ticketsPerSheet = 5;
+
 export function download(href: string, filename: string) {
   const link = document.createElement("a");
   link.href = href;
@@ -76,25 +78,29 @@ export async function downloadPrintSheet(passes: PrintablePass[]) {
   pdf.setTitle("The Last Soirée | Printable passes");
   const background = await pdf.embedPng(await image.arrayBuffer());
   const [pageWidth,pageHeight] = PageSizes.A4;
-  const gap = 8 * mm;
-  const rows = 4;
-  const pageTop = (pageHeight + (rows*ticketHeight + (rows-1)*gap)) / 2;
-  const x = (pageWidth - ticketWidth)/2;
+  const gap = 5 * mm;
+  const rows = ticketsPerSheet;
+  const printScale = 0.86;
+  const width = ticketWidth * printScale;
+  const height = ticketHeight * printScale;
+  const pageTop = (pageHeight + (rows*height + (rows-1)*gap)) / 2;
+  const x = (pageWidth - width)/2;
   for (let i=0; i<passes.length; i+=rows) {
     const page = pdf.addPage(PageSizes.A4);
     const group = passes.slice(i,i+rows);
     for (const [row, pass] of group.entries()) {
-      const y = pageTop - (row+1)*ticketHeight - row*gap;
-      page.drawImage(background,{x,y,width:ticketWidth,height:ticketHeight});
+      const y = pageTop - (row+1)*height - row*gap;
+      page.drawImage(background,{x,y,width,height});
       const text = await pdf.embedPng(dynamicText(pass).toDataURL("image/png"));
-      page.drawImage(text,{x,y:y+(720-550-168)/scale,width:ticketWidth,height:168/scale});
+      page.drawImage(text,{x,y:y+(720-550-168)/scale*printScale,width,height:168/scale*printScale});
 
       const qr = makeQr(pass);
       const count = qr.getModuleCount();
-      const step = qrSize / (count+8);
-      const left = x + qrMid - qrSize/2;
-      const bottom = y + 53;
-      page.drawRectangle({x:left,y:bottom,width:qrSize,height:qrSize,color:rgb(1,1,1)});
+      const printedQr = qrSize * printScale;
+      const step = printedQr / (count+8);
+      const left = x + qrMid * printScale - printedQr/2;
+      const bottom = y + 53 * printScale;
+      page.drawRectangle({x:left,y:bottom,width:printedQr,height:printedQr,color:rgb(1,1,1)});
       for (let j=0; j<count; j++) {
         let start = -1;
         for (let k=0; k<=count; k++) {
@@ -104,7 +110,7 @@ export async function downloadPrintSheet(passes: PrintablePass[]) {
           }
           if (start === -1) continue;
           page.drawRectangle({
-            x:left+(start+4)*step,y:bottom+qrSize-(j+5)*step,
+            x:left+(start+4)*step,y:bottom+printedQr-(j+5)*step,
             width:(k-start)*step+.015,height:step+.015,color:rgb(0,0,0),
           });
           start = -1;
@@ -112,8 +118,8 @@ export async function downloadPrintSheet(passes: PrintablePass[]) {
       }
 
       const color = rgb(.32,.27,.25);
-      for (const [cornerX, directionX] of [[x,-1],[x+ticketWidth,1]]) {
-        for (const [cornerY, directionY] of [[y,-1],[y+ticketHeight,1]]) {
+      for (const [cornerX, directionX] of [[x,-1],[x+width,1]]) {
+        for (const [cornerY, directionY] of [[y,-1],[y+height,1]]) {
           page.drawLine({start:{x:cornerX+2*directionX,y:cornerY},end:{x:cornerX+9*directionX,y:cornerY},thickness:.55,color});
           page.drawLine({start:{x:cornerX,y:cornerY+2*directionY},end:{x:cornerX,y:cornerY+9*directionY},thickness:.55,color});
         }

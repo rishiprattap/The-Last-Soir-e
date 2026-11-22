@@ -1,7 +1,7 @@
 # The Last Soirée
 
 Ticket verification and check-in for the DPSB after-party. Guests check a QR
-without signing in. The organizer issues passes, downloads four per A4 sheet,
+without signing in. The organizer issues passes, downloads five per A4 sheet,
 and admits guests through the private dashboard. The printed DPSB serial
 identifies the pass on paper. The random QR token is required for validation.
 

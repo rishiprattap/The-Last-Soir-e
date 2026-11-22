@@ -5,7 +5,7 @@ import type { FormEvent, ChangeEvent } from "react";
 import { Activity, BadgeCheck, CalendarDays, Camera, Check, CircleAlert, Clock3, Download, ImagePlus, Link2, List, MapPin, Plus, QrCode, ScanLine, Search, ShieldCheck, Sparkles, Ticket, Users, X } from "lucide-react";
 import { decode, decodeFile } from "../../lib/qr-image";
 import { passNumber, readQr, ticketLink } from "../../lib/pass-code";
-import { download, downloadPrintSheet, downloadTicket } from "../../lib/print-passes";
+import { download, downloadPrintSheet, downloadTicket, ticketsPerSheet } from "../../lib/print-passes";
 
 type Pass = { id: number; name: string; token: string; createdAt: string; admittedAt: string | null; cancelledAt: string | null };
 type Result = { pass: Pass | null; admittedNow?: boolean; code: string };
@@ -293,7 +293,7 @@ export default function Home() {
         </aside>
       </div> : <section className="card register">
         <div className="register-header">
-          <div className="card-heading"><span className="small-icon"><Ticket size={21}/></span><div><h2>Pass register</h2><p>{active.length} of 50 active passes issued · 4 tickets per A4 page</p></div></div>
+          <div className="card-heading"><span className="small-icon"><Ticket size={21}/></span><div><h2>Pass register</h2><p>{active.length} of 50 active passes issued · {ticketsPerSheet} tickets per A4 page</p></div></div>
           <div className="register-actions"><button className="secondary" disabled={loading || !!loadError || !active.length || printing} onClick={() => void printPasses()}><Download size={17}/> {printing ? "Preparing PDF…" : "Download print PDF"}</button><button className="secondary" disabled={loading || !!loadError} onClick={() => exportList(active)}><Download size={17}/> Export door list</button><button className="primary" disabled={active.length>=50 || !!loadError} onClick={() => setIssueOpen(value => !value)}><Plus size={18}/> Add guests</button></div>
         </div>
         {issueOpen && <form className="issue-form" onSubmit={issue}>
