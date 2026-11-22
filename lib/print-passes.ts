@@ -78,18 +78,18 @@ export async function downloadPrintSheet(passes: PrintablePass[]) {
   pdf.setTitle("The Last Soirée | Printable passes");
   const background = await pdf.embedPng(await image.arrayBuffer());
   const [pageWidth,pageHeight] = PageSizes.A4;
-  const gap = 5 * mm;
   const rows = ticketsPerSheet;
-  const printScale = 0.86;
+  const margin = 6 * mm;
+  const printScale = Math.min((pageHeight - 2*margin) / (rows*ticketHeight), (pageWidth - 2*margin) / ticketWidth);
   const width = ticketWidth * printScale;
   const height = ticketHeight * printScale;
-  const pageTop = (pageHeight + (rows*height + (rows-1)*gap)) / 2;
+  const pageTop = (pageHeight + rows*height) / 2;
   const x = (pageWidth - width)/2;
   for (let i=0; i<passes.length; i+=rows) {
     const page = pdf.addPage(PageSizes.A4);
     const group = passes.slice(i,i+rows);
     for (const [row, pass] of group.entries()) {
-      const y = pageTop - (row+1)*height - row*gap;
+      const y = pageTop - (row+1)*height;
       page.drawImage(background,{x,y,width,height});
       const text = await pdf.embedPng(dynamicText(pass).toDataURL("image/png"));
       page.drawImage(text,{x,y:y+(720-550-168)/scale*printScale,width,height:168/scale*printScale});
@@ -121,6 +121,7 @@ export async function downloadPrintSheet(passes: PrintablePass[]) {
       for (const [cornerX, directionX] of [[x,-1],[x+width,1]]) {
         for (const [cornerY, directionY] of [[y,-1],[y+height,1]]) {
           page.drawLine({start:{x:cornerX+2*directionX,y:cornerY},end:{x:cornerX+9*directionX,y:cornerY},thickness:.55,color});
+          if (directionY === 1 && row !== 0 || directionY === -1 && row !== group.length-1) continue;
           page.drawLine({start:{x:cornerX,y:cornerY+2*directionY},end:{x:cornerX,y:cornerY+9*directionY},thickness:.55,color});
         }
       }
